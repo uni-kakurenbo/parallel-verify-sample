@@ -57,9 +57,20 @@ jobs:
         echo ${TEST_FILES} > .verify-helper/targets.txt
         cat .verify-helper/targets.txt
 
+    - name: Cache judge data
+      if: ${{ !cancelled() && github.ref_name == github.event.repository.default_branch }}
+      id: cache-judge
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/online-judge-tools/library-checker-problems/
+          main/.verify-helper/cache/
+        key: verify-${{ hashFiles('main/verify/**/*.test.cpp', 'main/.verify-helper/targets.txt') }}
+
     - name: Run tests
       working-directory: main
       env:
+        CACHE_HIT: ${{ steps.cache-judge.outputs.cache-hit }}
         CPLUS_INCLUDE_PATH: ${{ github.workspace }}/ac-library
         YUKICODER_TOKEN: ${{ secrets.YUKICODER_TOKEN }}
       run: |
@@ -67,7 +78,7 @@ jobs:
 
         echo '{}' > ./.verify-helper/timestamps.json
 
-        if [ ! -f ./.verify-helper/timestamps.remote.json ]; then
+        if [ ! -f ./.verify-helper/timestamps.remote.json ] || [ "${CACHE_HIT}" != 'true' ]; then
           echo '{}' > ./.verify-helper/timestamps.remote.json
         fi
 
