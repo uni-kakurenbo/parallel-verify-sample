@@ -32,6 +32,7 @@ jobs:
         sparse-checkout: atcoder
 
     - name: Run tests
+      working-directory: main
       env:
         CPLUS_INCLUDE_PATH: ${{ github.workspace }}/ac-library
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
